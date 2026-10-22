@@ -1,0 +1,77 @@
+name: 每日行业新闻海报
+
+on:
+  schedule:
+    # UTC 23:30 = 北京时间早上 7:30（GitHub 定时可能有 ±15 分钟左右浮动）
+    - cron: '30 23 * * *'
+  workflow_dispatch: {}   # 支持手动触发，用于部署后验证
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-poster
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 抓取当日行业新闻
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+        run: python scripts/collect_news.py
+
+      - name: 生成海报
+        run: python scripts/gen_poster.py
+
+      - name: 提交海报到仓库
+        run: |
+          git config user.name "poster-bot"
+          git config user.email "actions@github.com"
+          git add docs/ data/ || true
+          git diff --cached --quiet || git commit -m "poster $(TZ=Asia/Shanghai date +%Y-%m-%d)"
+          git push
+
+      - name: 部署到 GitHub Pages（固定链接）
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: 微信推送（可选，需配置 SENDKEY）
+        if: env.SENDKEY != ''
+        env:
+          SENDKEY: ${{ secrets.SENDKEY }}
+          REPO: ${{ github.repository }}
+        run: |
+          IMG_URL="https://$(echo $REPO | cut -d/ -f1).github.io/$(echo $REPO | cut -d/ -f2)/latest.png"
+          curl -s "https://sctapi.ftqq.com/${SENDKEY}.send" \
+            -d "title=今日行业新闻海报已生成" \
+            -d "desp=![海报](${IMG_URL})%0A%0A点击图片查看大图，或打开固定链接保存转发。"
+
+  deploy-pages:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 发布 Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
