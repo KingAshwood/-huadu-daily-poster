@@ -149,8 +149,15 @@ draw = ImageDraw.Draw(img)
 draw.rectangle([0, 0, W, HEADER_H], fill=DEEP_BLUE)
 draw.rectangle([0, 0, W, 6], fill=GOLD)
 
-logo = Image.open(os.path.join(BASE, "assets", "logo_white.png")).convert("RGBA")
-img.paste(logo, (MARGIN, 38), logo)
+# logo：裁掉透明边框取实际图案，放大到与主标题文字同高，左边缘与标题对齐
+logo_raw = Image.open(os.path.join(BASE, "assets", "logo_white.png")).convert("RGBA")
+bbox = logo_raw.getbbox()          # 按 alpha 通道取实际图案边界
+logo_art = logo_raw.crop(bbox) if bbox else logo_raw
+_title_l, _title_t, _title_r, _title_b = draw.textbbox((0, 0), "每日行业资讯", font=TITLE_F)
+TITLE_TEXT_H = _title_b - _title_t
+_scale = TITLE_TEXT_H / logo_art.height
+logo = logo_art.resize((max(1, round(logo_art.width * _scale)), TITLE_TEXT_H), Image.LANCZOS)
+img.paste(logo, (MARGIN, 36), logo)
 
 now = datetime.now(timezone(timedelta(hours=8)))
 date_str = now.strftime("%Y年%m月%d日")

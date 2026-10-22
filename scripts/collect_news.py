@@ -28,10 +28,12 @@ OUT_PATH = os.path.join(DATA_DIR, "news.json")
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 TIMEOUT = 15
 
-# ---------- 检索词（行业定制：钢制家具外贸 + 跨境物流 + 政策） ----------
+# ---------- 检索词（行业定制：钢制家具外贸 + 跨境物流 + 政策 + 跨境大卖 + 亚马逊家具） ----------
 QUERIES = [
     "钢制家具 出口", "办公家具 外贸", "家具 出口 订单",
     "集装箱 运价", "海运 美线 运价", "港口 拥堵 船期",
+    "致欧 科技", "乐歌 股份", "星商 跨境", "跨境电商 上市公司",
+    "亚马逊 家具 类目", "亚马逊 家具 畅销",
     "外贸 出口 政策", "跨境电商 海外仓", "出口 退税",
 ]
 
@@ -160,9 +162,21 @@ def dedupe(items):
 
 
 def clean_desc(desc, max_len=90):
+    """整段话、不留省略号尾巴：超长时在句子边界截断"""
     desc = re.sub(r"\s+", " ", desc).strip()
+    desc = re.sub(r"[…]+$", "", desc).strip()
     if len(desc) > max_len:
-        desc = desc[: max_len - 1].rstrip("，、；,; ") + "…"
+        cut = desc[:max_len]
+        # 优先在句号/问号/感叹号处收尾，其次分号/逗号
+        m = None
+        for pat in ("。", "！", "？", "；", "，"):
+            idx = cut.rfind(pat)
+            if idx >= max_len // 2:
+                m = idx
+                break
+        desc = (cut[: m + 1] if m else cut).rstrip("，、；,; ")
+        if desc and desc[-1] not in "。！？；":
+            desc += "。"
     return desc
 
 
@@ -178,9 +192,16 @@ def llm_curate(candidates):
     prompt = (
         "你是外贸行业编辑，服务对象是河南一家钢制家具出口企业（主营拆装式钢制储物柜、"
         "工具柜，出口美国日本澳洲，做亚马逊+海外仓分销+独立站）。\n"
-        "从下面候选新闻中精选 10 条，优先级：1)家具/钢制家具行业动态 2)海运运价/港口/船期"
-        " 3)出口退税/关税/外贸政策 4)跨境电商与海外仓 5)宏观经济外贸数据。\n"
-        "每条输出 title（12字内）和 desc（35-50字，客观陈述事实，含具体数字优先）。\n"
+        "从下面候选新闻中精选 10 条，【栏目结构固定，每类正好 2 条，共 10 条】：\n"
+        "1) 家具/钢制家具行业动态或洛阳本地新闻 ×2\n"
+        "2) 海运相关（运价、港口、船期、集运）×2\n"
+        "3) 大型跨境电商公司动态 ×2（优先致欧科技、乐歌股份、星商集团，其次安克创新、"
+        "巨星科技、恒林股份、永艺股份、梦百合等跨境大卖）\n"
+        "4) 亚马逊平台或家具类目相关 ×2\n"
+        "5) 其他外贸/家具/跨境电商相关 ×2\n"
+        "若某类候选不足，可从相邻类别借调，但总数保持 10 条。\n"
+        "每条输出 title（12字内）和 desc（35-50字整段话，客观陈述事实，含具体数字优先，"
+        "必须是完整句子，结尾用句号，绝对不要省略号或残句）。\n"
         "只输出 JSON 数组，格式 [{\"title\":\"..\",\"desc\":\"..\"}]，不要其他文字。\n\n"
         + "\n".join(lines)
     )
@@ -211,10 +232,47 @@ def llm_curate(candidates):
     return None
 
 
+def categorize(item):
+    """按优先级归类：大卖 > 海运 > 亚马逊 > 行业 > 其他外贸"""
+    text = item["title"] + item["desc"]
+    if re.search(r"致欧|乐歌|星商|安克|巨星|恒林|永艺|梦百合|赛维|傲基|华凯易佰|跨境大卖|上市公司.*跨境", text):
+        return "大卖"
+    if re.search(r"运价|集装箱|SCFI|海运|港口|船期|拥堵|巴拿马|舱位|集运|航运|红海|苏伊士", text):
+        return "海运"
+    if re.search(r"亚马逊|Amazon|Prime|类目|BSR|跨境电商平台", text, re.I):
+        return "亚马逊"
+    if re.search(r"家具|储物柜|文件柜|工具柜|洛阳|伊滨|庞村|偃师|钢制|办公椅|床垫|沙发", text):
+        return "行业"
+    if re.search(r"外贸|出口|退税|关税|海外仓|跨境|订单|订舱|报关|RCEP|一带一路", text):
+        return "外贸"
+    return None
+
+
 def rule_curate(candidates):
-    picked = sorted(candidates, key=score, reverse=True)[:10]
+    """兜底：固定栏目配额 2+2+2+2+2"""
+    quota = [("行业", 2), ("海运", 2), ("大卖", 2), ("亚马逊", 2), ("外贸", 2)]
+    buckets = {}
+    for c in candidates:
+        cat = categorize(c)
+        if cat:
+            buckets.setdefault(cat, []).append(c)
+    for cat in buckets:
+        buckets[cat].sort(key=score, reverse=True)
+    picked, used = [], set()
+    for cat, n in quota:
+        for c in buckets.get(cat, [])[:n]:
+            if len([p for p in picked if p[0] == cat]) < n:
+                picked.append((cat, c))
+                used.add(id(c))
+    # 配额不满时从剩余候选补齐
+    if len(picked) < 10:
+        rest = sorted((c for c in candidates if id(c) not in used),
+                      key=score, reverse=True)
+        for c in rest[: 10 - len(picked)]:
+            picked.append(("补", c))
+    picked = picked[:10]
     return [{"title": it["title"][:20], "desc": clean_desc(it["desc"] or it["title"])}
-            for it in picked]
+            for _, it in picked]
 
 
 def main():
