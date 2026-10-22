@@ -65,6 +65,14 @@ jobs:
             -d "title=今日行业新闻海报已生成" \
             -d "desp=![海报](${IMG_URL})%0A%0A点击图片查看大图，或打开固定链接保存转发。"
 
+      - name: 钉钉推送（可选，需配置 DINGTALK_WEBHOOK）
+        if: env.DINGTALK_WEBHOOK != ''
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          REPO: ${{ github.repository }}
+        run: python scripts/notify_dingtalk.py
+
   deploy-pages:
     needs: build
     runs-on: ubuntu-latest
