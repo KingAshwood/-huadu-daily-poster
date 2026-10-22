@@ -162,8 +162,10 @@ def dedupe(items):
 
 
 def clean_desc(desc, max_len=90):
-    """整段话、不留省略号尾巴：超长时在句子边界截断"""
+    """整段话、不留省略号尾巴：去来源残留 + 句子边界截断"""
     desc = re.sub(r"\s+", " ", desc).strip()
+    # 去掉尾部来源残留：如 "- finance.sina.com.cn" / "- 雨果跨境" / "- 温州新闻"
+    desc = re.sub(r"\s*[-–—|]\s*\S{1,30}$", "", desc).strip()
     desc = re.sub(r"[…]+$", "", desc).strip()
     if len(desc) > max_len:
         cut = desc[:max_len]
