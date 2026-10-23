@@ -5,7 +5,7 @@
 ## 整体架构
 
 ```
-GitHub Actions（每天北京时间 07:30 定时触发，免费）
+GitHub Actions（每天北京时间 06:30 定时触发，免费）
   ├─ scripts/collect_news.py  → 抓取当日行业新闻（Bing 新闻 RSS 多关键词检索）
   │                            → 配置了大模型 Key 时自动精选润色，未配置则关键词加权筛选
   ├─ scripts/gen_poster.py    → 用与本地版完全一致的版式生成海报（字体已打包进仓库）
