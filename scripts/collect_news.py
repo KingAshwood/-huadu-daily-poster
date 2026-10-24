@@ -24,18 +24,21 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(os.path.dirname(BASE), "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 OUT_PATH = os.path.join(DATA_DIR, "news.json")
+HISTORY_PATH = os.path.join(DATA_DIR, "history.json")
+HISTORY_DAYS = 7
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 TIMEOUT = 15
 
-# ---------- 检索词（行业定制：钢制家具外贸 + 跨境物流 + 政策 + 跨境大卖 + 亚马逊家具） ----------
+# ---------- 检索词（宽口径：钢制家具外贸 + 跨境 + 宏观数据 + 政策 + 国际民生） ----------
 QUERIES = [
-    "钢制家具 出口", "办公家具 外贸", "家具 出口 订单",
-    "集装箱 运价", "海运 美线 运价", "港口 拥堵 船期",
-    "致欧 科技", "乐歌 股份", "星商 跨境", "跨境电商 上市公司",
-    "亚马逊 卖家 封号", "亚马逊 卖家 冻结", "跨境电商 公司 上市",
-    "亚马逊 家具 类目", "亚马逊 家具 畅销",
-    "外贸 出口 政策", "跨境电商 海外仓", "出口 退税",
+    "钢制家具 出口", "办公家具 外贸", "家具 出口 订单", "家具 展会 出口",
+    "集装箱 运价", "海运 美线 运价", "港口 拥堵 船期", "国际 油价 航运",
+    "致欧 科技", "乐歌 股份", "星商 跨境", "跨境电商 上市公司", "跨境电商 三季报",
+    "亚马逊 卖家 封号", "亚马逊 卖家 冻结", "跨境电商 公司 上市", "亚马逊 新规 卖家",
+    "亚马逊 家具 类目", "亚马逊 家具 畅销", "跨境电商 平台 招商",
+    "外贸 出口 政策", "跨境电商 海外仓", "出口 退税", "中美 关税 降税",
+    "海关总署 进出口 数据", "广交会", "人民币 汇率 外贸",
 ]
 
 # 行业关键词加权
@@ -183,7 +186,7 @@ def clean_desc(desc, max_len=90):
     return desc
 
 
-def llm_curate(candidates):
+def llm_curate(candidates, history):
     """可选：调用大模型精选 10 条（OpenAI 兼容接口，默认 DeepSeek）"""
     api_key = os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key or len(candidates) < 12:
@@ -192,18 +195,21 @@ def llm_curate(candidates):
     model = os.environ.get("LLM_MODEL", "deepseek-chat")
     lines = ["%d. [%s] %s" % (i + 1, c["pubDate"][:16], c["title"] + " —— " + c["desc"])
              for i, c in enumerate(candidates[:40])]
+    seen = "\n".join("- %s（%s）" % (h["title"], h["date"]) for h in history[-40:])
     prompt = (
         "你是外贸行业编辑，服务对象是河南一家钢制家具出口企业（主营拆装式钢制储物柜、"
         "工具柜，出口美国日本澳洲，做亚马逊+海外仓分销+独立站）。\n"
-        "从下面候选新闻中精选 10 条，按【弹性栏目配额】组稿，共 10 条：\n"
-        "1) 洛阳/钢制家具行业动态 1-2 条\n"
-        "2) 跨境电商大卖/卖家案例 1-2 条（知名公司优先致欧科技、乐歌股份、星商集团、"
-        "安克创新、巨星科技等；也欢迎中小公司故事型新闻，如某卖家被亚马逊下架/罚款/"
-        "冻结资金、某小公司做小工艺品成功上市等，要求有具体公司、具体事件、具体数字）\n"
-        "3) 外贸/家具出口相关 2 条\n"
-        "4) 海运整柜相关（运价、港口、船期、集运）1 条\n"
-        "5) 国内新闻（外贸/跨境政策、天气影响物流、平台监管动态等）3 条\n"
-        "某类候选不足时从相邻类别补足，总数保持 10 条。\n"
+        "从下面候选新闻中精选 10 条，范围要广、彼此不重复，按【弹性板块】组稿：\n"
+        "1) 家具/钢制家具行业、产业带或展会动态 1-2 条\n"
+        "2) 跨境电商动态（大卖财报、卖家案例、平台新规、新兴平台招商）1-2 条\n"
+        "3) 外贸政策与宏观数据（海关数据、关税、退税、汇率、外贸主体）2 条\n"
+        "4) 海运/国际物流（运价、港口、船期、能源运输）1 条\n"
+        "5) 国内/国际民生与突发（天气、地震、地缘政治、能源等大事）2-3 条\n"
+        "某板块候选不足时由相邻板块补足，总数保持 10 条。\n"
+        "【去重硬规则】下方列出近7天已发新闻，严禁选取与其为同一事实的候选——"
+        "同一公司同一事件、或标题含相同关键数字（如同一份运价/同一份海关数据）都算重复；"
+        "数据类新闻必须换新数据、新口径。\n"
+        "近7天已发：\n" + (seen if seen else "（无）") + "\n\n"
         "每条输出 title（12字内）和 desc（35-50字整段话，客观陈述事实，含具体数字优先，"
         "必须是完整句子，结尾用句号，绝对不要省略号或残句）。\n"
         "只输出 JSON 数组，格式 [{\"title\":\"..\",\"desc\":\"..\"}]，不要其他文字。\n\n"
@@ -257,7 +263,7 @@ def categorize(item):
 
 
 def rule_curate(candidates):
-    """兜底：弹性栏目配额（近似周总定版）：行业2 / 大卖2 / 海运1 / 亚马逊2 / 外贸3"""
+    """兜底：宽口径弹性配额，不足由其他板块/高分候选补足"""
     quota = [("行业", 2), ("大卖", 2), ("海运", 1), ("亚马逊", 2), ("外贸", 3)]
     buckets = {}
     for c in candidates:
@@ -283,6 +289,51 @@ def rule_curate(candidates):
             for _, it in picked]
 
 
+def title_key(text):
+    """标题归一化指纹（去空白与标点后取前18字）"""
+    return re.sub(r"[\s，。、；：（）()「」『』《》\"'\-—·！？!?%+.]", "", text)[:18]
+
+
+def figure_keys(text):
+    """提取带单位的特征数字，用于识别『同一份数据/同一事实』的重复"""
+    return set(re.findall(r"\d+(?:\.\d+)?(?:万亿|亿|万)(?:元|美元|标箱|件|套|吨)?|\d+(?:\.\d+)?%", text))
+
+
+def load_history():
+    """读取近 HISTORY_DAYS 天已发新闻，用于跨天去重"""
+    try:
+        with open(HISTORY_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        cutoff = (datetime.now(timezone(timedelta(hours=8)))
+                  - timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d")
+        return [h for h in data if str(h.get("date", "")) >= cutoff]
+    except Exception:
+        return []
+
+
+def is_dup(item, history):
+    """与近7天已发新闻：标题指纹相同，或特征数字重合≥2个，均视为重复"""
+    key = title_key(item["title"])
+    figs = figure_keys(item["title"] + " " + item["desc"])
+    for h in history:
+        if key and h.get("key") == key:
+            return True
+        if figs and len(figs & set(h.get("figs", []))) >= 2:
+            return True
+    return False
+
+
+def save_history(history, news):
+    today = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d")
+    history = [h for h in history if h.get("date") != today]
+    for it in news:
+        history.append({"date": today, "title": it["title"],
+                        "key": title_key(it["title"]),
+                        "figs": sorted(figure_keys(it["title"] + " " + it["desc"]))})
+    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=1)
+
+
 def main():
     # 三源融合
     raw = fetch_sina()
@@ -297,6 +348,19 @@ def main():
     pool = industry if len(industry) >= 12 else candidates
     print("过滤后候选", len(pool), "条")
 
+    # 跨天去重：剔除与近7天已发相同事实的新闻
+    history = load_history()
+    if history:
+        fresh = [c for c in pool if not is_dup(c, history)]
+        if len(fresh) >= 5:
+            print("跨天去重：剔除", len(pool) - len(fresh), "条，剩", len(fresh), "条")
+            pool = fresh
+        else:
+            # 去重后候选不足时，仅按标题指纹去重（保留更多候选兜底）
+            keys = {h.get("key") for h in history}
+            pool = [c for c in pool if title_key(c["title"]) not in keys]
+            print("去重后候选不足，降级为仅标题去重，剩", len(pool), "条")
+
     # 安全写入：抓取不足时保留昨日数据
     if len(pool) < 5:
         keep = os.path.exists(OUT_PATH)
@@ -304,7 +368,7 @@ def main():
         if keep:
             return
 
-    news = llm_curate(pool) or rule_curate(pool)
+    news = llm_curate(pool, history) or rule_curate(pool)
     if len(news) < 5 and os.path.exists(OUT_PATH):
         print("筛选结果不足，保留昨日 news.json")
         return
@@ -312,6 +376,7 @@ def main():
     today = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d")
     with open(OUT_PATH, "w", encoding="utf-8") as f:
         json.dump(news, f, ensure_ascii=False, indent=1)
+    save_history(history, news)
     print("已写入", OUT_PATH, "日期", today, "条数", len(news))
     for n in news:
         print(" -", n["title"])
