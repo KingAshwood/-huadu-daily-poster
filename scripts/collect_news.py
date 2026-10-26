@@ -187,8 +187,8 @@ def dedupe(items):
 def clean_desc(desc, max_len=90):
     """整段话、不留省略号尾巴：去来源残留 + 句子边界截断"""
     desc = re.sub(r"\s+", " ", desc).strip()
-    # 去掉尾部来源残留：如 "- finance.sina.com.cn" / "- 雨果跨境" / "- 温州新闻"
-    desc = re.sub(r"\s*[-–—|]\s*\S{1,30}$", "", desc).strip()
+    # 去掉尾部来源残留：如 "- finance.sina.com.cn" / "- 雨果跨境" / "- ChemNet News"
+    desc = re.sub(r"\s*[-–—|]\s*[\w.-]+(?:\s+[\w.-]+){0,2}$", "", desc).strip()
     desc = re.sub(r"[…]+$", "", desc).strip()
     if len(desc) > max_len:
         cut = desc[:max_len]
@@ -203,6 +203,22 @@ def clean_desc(desc, max_len=90):
         if desc and desc[-1] not in "。！？；":
             desc += "。"
     return desc
+
+
+def clean_title(title, max_len=16):
+    """标题截断：超长时在标点边界收尾，并去掉尾部悬空的连接字，避免残句"""
+    title = re.sub(r"\s+", " ", title).strip()
+    if len(title) <= max_len:
+        return title.rstrip("，、；：,;")
+    cut = title[:max_len]
+    m = None
+    for pat in ("：", "，", "、", "；", "？", "！"):
+        idx = cut.rfind(pat)
+        if idx >= max_len // 2:
+            m = idx
+            break
+    title = cut[:m] if m else cut
+    return re.sub(r"[报涨跌达至超约增破与和及的了在为开将拟]$|（[^）]*$|\($", "", title)
 
 
 def llm_curate(candidates, history):
@@ -227,7 +243,9 @@ def llm_curate(candidates, history):
         "最多 3 条，宁缺毋滥；\n"
         "2) 彼此不得是同一事实或相似事件——同一公司同一事件、同一份数据的"
         "不同报道都算重复，相似的也不要；\n"
-        "3) 优先具体事实与具体数字，优先近 36 小时内的新鲜新闻。\n"
+        "3) 优先具体事实与具体数字；今天是 %s，只允许选发布时间在近 48 小时内的"
+        "候选（每行开头有日期，更早的直接跳过，宁缺毋滥、严禁旧闻）；\n" % datetime.now(
+            timezone(timedelta(hours=8))).strftime("%Y-%m-%d") + "\n"
         "【去重硬规则】下方列出近7天已发新闻，严禁选取与其为同一事实的候选——"
         "同一公司同一事件、或标题含相同关键数字（如同一份运价/同一份海关数据）都算重复；"
         "数据类新闻必须换新数据、新口径。\n"
@@ -255,7 +273,8 @@ def llm_curate(candidates, history):
         content = re.search(r"\[.*\]", content, re.S).group(0)
         news = json.loads(content)
         if isinstance(news, list) and len(news) >= 8:
-            news = [{"title": str(n["title"])[:20], "desc": clean_desc(str(n["desc"]), 80)}
+            news = [{"title": clean_title(str(n["title"]), 20),
+                     "desc": clean_desc(str(n["desc"]), 80)}
                     for n in news[:10]]
             print("已使用大模型精选，共", len(news), "条")
             return news
@@ -342,7 +361,8 @@ def rule_curate(candidates):
     if len(picked) < 10:
         print("严格相似剔除仅得 %d 条，降级为仅同标题去重" % len(picked))
         picked = _greedy_pick(candidates, strict=False)
-    return [{"title": it["title"][:20], "desc": clean_desc(it["desc"] or it["title"])}
+    return [{"title": clean_title(it["title"], 20),
+             "desc": clean_desc(it["desc"] or it["title"])}
             for it in picked]
 
 
