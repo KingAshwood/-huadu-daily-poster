@@ -208,7 +208,7 @@ def clean_desc(desc, max_len=90):
 def clean_title(title, max_len=16):
     """标题截断：超长时在标点边界收尾，并去掉尾部悬空的连接字，避免残句"""
     title = re.sub(r"\s+", " ", title).strip()
-    title = re.sub(r"\s*[|｜]\s*", " ", title).strip()
+    title = re.sub(r"\s*[|｜丨]\s*", " ", title).strip()
     if len(title) <= max_len:
         return title.rstrip("，、；：,;")
     cut = title[:max_len]
