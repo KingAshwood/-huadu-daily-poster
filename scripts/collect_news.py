@@ -30,18 +30,27 @@ HISTORY_DAYS = 7
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 TIMEOUT = 15
 
-# ---------- 检索词（宽口径：钢制家具外贸 + 跨境 + 宏观数据 + 政策 + 国际民生） ----------
+# ---------- 检索词（宽口径：外贸 + 财经 + 民生 + 国际新闻 + 家具/钢制家具，不限板块条数） ----------
 QUERIES = [
+    # 家具 / 钢制家具行业
     "钢制家具 出口", "办公家具 外贸", "家具 出口 订单", "家具 展会 出口",
-    "集装箱 运价", "海运 美线 运价", "港口 拥堵 船期", "国际 油价 航运",
-    "致欧 科技", "乐歌 股份", "星商 跨境", "跨境电商 上市公司", "跨境电商 三季报",
-    "亚马逊 卖家 封号", "亚马逊 卖家 冻结", "跨境电商 公司 上市", "亚马逊 新规 卖家",
-    "亚马逊 家具 类目", "亚马逊 家具 畅销", "跨境电商 平台 招商",
-    "外贸 出口 政策", "跨境电商 海外仓", "出口 退税", "中美 关税 降税",
-    "海关总署 进出口 数据", "广交会", "人民币 汇率 外贸",
+    "家具 产业带", "家居 出口",
+    # 跨境电商动态
+    "致欧 科技", "乐歌 股份", "跨境电商 上市公司", "亚马逊 卖家 新规",
+    "跨境电商 三季报", "亚马逊 家具 类目", "跨境电商 海外仓",
+    # 外贸政策与宏观数据
+    "外贸 出口 政策", "出口 退税", "中美 关税", "海关总署 进出口 数据",
+    "广交会", "人民币 汇率 外贸", "一带一路 贸易", "RCEP",
+    # 财经 / 宏观
+    "美联储 利率", "全球 经济 增长", "大宗商品 价格", "原油 价格",
+    "黄金 价格", "通胀 数据", "财经 要闻",
+    # 海运 / 国际物流
+    "集装箱 运价", "海运 美线 运价", "港口 船期", "国际 油价 航运",
+    # 民生 / 国际新闻
+    "台风 预警", "地震 快讯", "国际 局势 制裁", "能源 供应", "极端天气 交通",
 ]
 
-# 行业关键词加权
+# 行业关键词加权（宽口径：行业/跨境/物流/财经/民生均计分）
 WEIGHTS = {
     "钢制家具": 5, "储物柜": 5, "文件柜": 5, "工具柜": 5, "更衣柜": 5, "保险柜": 3,
     "办公家具": 4, "家具出口": 5, "家具": 2, "洛阳": 3, "伊滨": 4, "庞村": 5,
@@ -49,10 +58,20 @@ WEIGHTS = {
     "港口": 3, "船期": 3, "拥堵": 3, "巴拿马": 3,
     "外贸": 3, "出口": 2, "退税": 4, "关税": 4, "海外仓": 4, "跨境": 3,
     "亚马逊": 3, "订单": 2, "订舱": 3, "报关": 3,
+    # 财经 / 宏观
+    "美联储": 3, "加息": 2, "降息": 2, "油价": 2, "黄金": 2, "汇率": 3,
+    "通胀": 2, "GDP": 2, "大宗商品": 2, "PPI": 2, "CPI": 2,
+    # 民生 / 国际
+    "台风": 2, "地震": 2, "制裁": 2, "地缘": 2, "能源": 2, "暴雨": 2, "寒潮": 2,
 }
 
 # 噪音标题过滤
-NOISE = re.compile(r"彩票|双色球|股票.*涨停|明星|电视剧|游戏|娱乐|健康|养生|房产.*售")
+NOISE = re.compile(r"彩票|双色球|股票.*涨停|明星|电视剧|游戏|娱乐|健康|养生|房产.*售|体育|联赛|球星|综艺")
+
+# 钢制家具优先：当天候选中出现相关新闻时优先选入（最多2条），没有则不硬凑
+STEEL_PRIORITY = re.compile(
+    r"钢制家具|钢制储物|储物柜|文件柜|工具柜|更衣柜|密集柜|保险柜|"
+    r"办公家具|金属家具|庞村|伊滨|偃师")
 
 
 def http_get(url, timeout=TIMEOUT):
@@ -199,13 +218,16 @@ def llm_curate(candidates, history):
     prompt = (
         "你是外贸行业编辑，服务对象是河南一家钢制家具出口企业（主营拆装式钢制储物柜、"
         "工具柜，出口美国日本澳洲，做亚马逊+海外仓分销+独立站）。\n"
-        "从下面候选新闻中精选 10 条，范围要广、彼此不重复，按【弹性板块】组稿：\n"
-        "1) 家具/钢制家具行业、产业带或展会动态 1-2 条\n"
-        "2) 跨境电商动态（大卖财报、卖家案例、平台新规、新兴平台招商）1-2 条\n"
-        "3) 外贸政策与宏观数据（海关数据、关税、退税、汇率、外贸主体）2 条\n"
-        "4) 海运/国际物流（运价、港口、船期、能源运输）1 条\n"
-        "5) 国内/国际民生与突发（天气、地震、地缘政治、能源等大事）2-3 条\n"
-        "某板块候选不足时由相邻板块补足，总数保持 10 条。\n"
+        "从下面候选新闻中精选 10 条。选题范围放宽：外贸、财经、国内国际民生、"
+        "国际新闻、家具/钢制家具行业均可，不设板块、不设条数配额，每天自由组稿。\n"
+        "硬性要求：\n"
+        "0) 【钢制家具优先】若候选中有钢制家具/储物柜/办公家具/洛阳产业带相关新闻，"
+        "优先选入最多 2 条；当天没有相关新闻就不要硬凑、不要拿旧闻充数；\n"
+        "1) 10 条题材尽量分散在不同领域，同一话题（如都是运价、都是关税、都是台风）"
+        "最多 3 条，宁缺毋滥；\n"
+        "2) 彼此不得是同一事实或相似事件——同一公司同一事件、同一份数据的"
+        "不同报道都算重复，相似的也不要；\n"
+        "3) 优先具体事实与具体数字，优先近 36 小时内的新鲜新闻。\n"
         "【去重硬规则】下方列出近7天已发新闻，严禁选取与其为同一事实的候选——"
         "同一公司同一事件、或标题含相同关键数字（如同一份运价/同一份海关数据）都算重复；"
         "数据类新闻必须换新数据、新口径。\n"
@@ -242,51 +264,86 @@ def llm_curate(candidates, history):
     return None
 
 
-def categorize(item):
-    """按优先级归类：大卖/卖家案例 > 海运 > 亚马逊 > 行业 > 其他外贸"""
-    text = item["title"] + item["desc"]
-    if re.search(r"致欧|乐歌|星商|安克|巨星|恒林|永艺|梦百合|赛维|傲基|华凯易佰|跨境大卖|上市公司.*跨境", text):
-        return "大卖"
-    # 中小卖家/小公司故事型案例（下架、罚款、冻结、稽查、上市等）也归入大卖板块
-    if re.search(r"(卖家|外贸公司|跨境公司|电商公司|小商品|工艺品).{0,24}(下架|封号|封店|冻结|罚款|稽查|被查|上市|IPO)"
-                 r"|(下架|封号|封店|冻结|罚款|稽查).{0,24}(卖家|外贸公司|跨境公司|电商公司)", text):
-        return "大卖"
-    if re.search(r"运价|集装箱|SCFI|海运|港口|船期|拥堵|巴拿马|舱位|集运|航运|红海|苏伊士", text):
-        return "海运"
-    if re.search(r"亚马逊|Amazon|Prime|类目|BSR|跨境电商平台", text, re.I):
-        return "亚马逊"
-    if re.search(r"家具|储物柜|文件柜|工具柜|洛阳|伊滨|庞村|偃师|钢制|办公椅|床垫|沙发", text):
-        return "行业"
-    if re.search(r"外贸|出口|退税|关税|海外仓|跨境|订单|订舱|报关|RCEP|一带一路|台风|应急响应", text):
-        return "外贸"
-    return None
+def bigrams(text):
+    """中英文通用的二元组集合，用于相似度计算"""
+    t = re.sub(r"[\s，。、；：（）()「」『』《》\"'\-—·！？!?%+.]", "", text)
+    return {t[i:i + 2] for i in range(len(t) - 1)} if len(t) >= 2 else {t} if t else set()
+
+
+def _lcs_len(a, b):
+    """最长公共子串长度（标题级短文本，O(n*m) 可接受）"""
+    if not a or not b:
+        return 0
+    prev = [0] * (len(b) + 1)
+    best = 0
+    for i in range(1, len(a) + 1):
+        cur = [0] * (len(b) + 1)
+        for j in range(1, len(b) + 1):
+            if a[i - 1] == b[j - 1]:
+                cur[j] = prev[j - 1] + 1
+                if cur[j] > best:
+                    best = cur[j]
+        prev = cur
+    return best
+
+
+def _strip_dates(text):
+    """去掉日期串，避免不同新闻同日期开头被判相似"""
+    return re.sub(r"20\d{2}年|\d{1,2}月\d{1,2}[日号]", "", text)
+
+
+def is_similar(text_a, text_b):
+    """两条新闻是否为同一事实/相似报道：
+    特征数字重合≥2 / 标题二元组重合度高 / 去日期后最长公共子串≥4字"""
+    fa, fb = figure_keys(text_a), figure_keys(text_b)
+    if fa and fb and len(fa & fb) >= 2:
+        return True
+    ba, bb = bigrams(text_a), bigrams(text_b)
+    if ba and bb and len(ba & bb) / len(ba | bb) >= 0.42:
+        return True
+    ta = re.sub(r"[\s，。、；：（）()「」『』《》\"'\-—·！？!?%+./]", "", _strip_dates(text_a))
+    tb = re.sub(r"[\s，。、；：（）()「」『』《》\"'\-—·！？!?%+./]", "", _strip_dates(text_b))
+    return _lcs_len(ta, tb) >= 4
+
+
+def _greedy_pick(candidates, strict, steel_first=True):
+    """按分数贪心选 10 条。strict=True 时剔除相似新闻；
+    strict=False 时仅剔除标题指纹完全相同的（凑数兜底）。
+    steel_first=True 时优先选入钢制家具相关新闻（最多2条，须为正分）"""
+    picked = []
+    if steel_first:
+        steel = [c for c in candidates
+                 if STEEL_PRIORITY.search(c["title"] + " " + (c["desc"] or ""))
+                 and score(c) > 0]
+        for c in sorted(steel, key=score, reverse=True)[:2]:
+            picked.append(c)
+    for c in sorted(candidates, key=score, reverse=True):
+        if len(picked) >= 10:
+            break
+        if c in picked:
+            continue
+        if score(c) < 0:
+            continue
+        if strict and any(is_similar(c["title"] + " " + (c["desc"] or ""),
+                                     p["title"] + " " + (p["desc"] or ""))
+                          for p in picked):
+            continue
+        if not strict and any(title_key(c["title"]) == title_key(p["title"])
+                              for p in picked):
+            continue
+        picked.append(c)
+    return picked
 
 
 def rule_curate(candidates):
-    """兜底：宽口径弹性配额，不足由其他板块/高分候选补足"""
-    quota = [("行业", 2), ("大卖", 2), ("海运", 1), ("亚马逊", 2), ("外贸", 3)]
-    buckets = {}
-    for c in candidates:
-        cat = categorize(c)
-        if cat:
-            buckets.setdefault(cat, []).append(c)
-    for cat in buckets:
-        buckets[cat].sort(key=score, reverse=True)
-    picked, used = [], set()
-    for cat, n in quota:
-        for c in buckets.get(cat, [])[:n]:
-            if len([p for p in picked if p[0] == cat]) < n:
-                picked.append((cat, c))
-                used.add(id(c))
-    # 配额不满时从剩余候选补齐
+    """兜底：无板块配额，宽口径按分数贪心取 10 条，批内相似剔除；
+    严格模式凑不满时降级为仅剔除完全同标题"""
+    picked = _greedy_pick(candidates, strict=True)
     if len(picked) < 10:
-        rest = sorted((c for c in candidates if id(c) not in used),
-                      key=score, reverse=True)
-        for c in rest[: 10 - len(picked)]:
-            picked.append(("补", c))
-    picked = picked[:10]
+        print("严格相似剔除仅得 %d 条，降级为仅同标题去重" % len(picked))
+        picked = _greedy_pick(candidates, strict=False)
     return [{"title": it["title"][:20], "desc": clean_desc(it["desc"] or it["title"])}
-            for _, it in picked]
+            for it in picked]
 
 
 def title_key(text):
@@ -294,9 +351,13 @@ def title_key(text):
     return re.sub(r"[\s，。、；：（）()「」『』《》\"'\-—·！？!?%+.]", "", text)[:18]
 
 
+_FIG_UNITS = (r"(?:万亿|亿|万|千|美元|元|点|标箱|TEU|FEU|箱|吨|艘|级|人|家|国|"
+              r"票|款|件|套|个|列|班|架|个百分点|%|％)")
+
+
 def figure_keys(text):
     """提取带单位的特征数字，用于识别『同一份数据/同一事实』的重复"""
-    return set(re.findall(r"\d+(?:\.\d+)?(?:万亿|亿|万)(?:元|美元|标箱|件|套|吨)?|\d+(?:\.\d+)?%", text))
+    return set(re.findall(r"\d+(?:\.\d+)?\s*" + _FIG_UNITS, text, re.I))
 
 
 def load_history():
