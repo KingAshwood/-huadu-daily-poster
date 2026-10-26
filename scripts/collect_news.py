@@ -208,17 +208,18 @@ def clean_desc(desc, max_len=90):
 def clean_title(title, max_len=16):
     """标题截断：超长时在标点边界收尾，并去掉尾部悬空的连接字，避免残句"""
     title = re.sub(r"\s+", " ", title).strip()
+    title = re.sub(r"\s*[|｜]\s*", " ", title).strip()
     if len(title) <= max_len:
         return title.rstrip("，、；：,;")
     cut = title[:max_len]
     m = None
-    for pat in ("：", "，", "、", "；", "？", "！"):
+    for pat in ("：", "，", "、", "；", "？", "！", " "):
         idx = cut.rfind(pat)
         if idx >= max_len // 2:
             m = idx
             break
     title = cut[:m] if m else cut
-    return re.sub(r"[报涨跌达至超约增破与和及的了在为开将拟]$|（[^）]*$|\($", "", title)
+    return re.sub(r"[报涨跌达至超约增破与和及的了在为开将拟企订出进装集运数指数指]$|（[^）]*$|\($", "", title)
 
 
 def llm_curate(candidates, history):
@@ -250,8 +251,9 @@ def llm_curate(candidates, history):
         "同一公司同一事件、或标题含相同关键数字（如同一份运价/同一份海关数据）都算重复；"
         "数据类新闻必须换新数据、新口径。\n"
         "近7天已发：\n" + (seen if seen else "（无）") + "\n\n"
-        "每条输出 title（12字内）和 desc（35-50字整段话，客观陈述事实，含具体数字优先，"
-        "必须是完整句子，结尾用句号，绝对不要省略号或残句）。\n"
+        "每条输出 title（必须不超过12字、语义完整的短句，宁短勿残，禁止出现"
+        "被截断的半句话）和 desc（35-50字整段话，客观陈述事实，含具体数字优先，"
+        "必须是完整句子，结尾用句号，绝对不要省略号或残句，不要带媒体来源名）。\n"
         "只输出 JSON 数组，格式 [{\"title\":\"..\",\"desc\":\"..\"}]，不要其他文字。\n\n"
         + "\n".join(lines)
     )
