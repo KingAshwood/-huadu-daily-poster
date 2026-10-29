@@ -146,6 +146,27 @@ def fetch_google_news(query, limit=15):
         return []
 
 
+def is_stale(item, max_age_days=4):
+    """时效硬过滤：标题/正文含明确「X月X日」且早于 max_age_days 天前 → 旧闻剔除。
+    跨年处理：1 月看到 12 月按上一年算。"""
+    text = (item.get("title", "") + " " + item.get("desc", ""))
+    now = datetime.now(timezone(timedelta(hours=8)))
+    for m in re.finditer(r"(\d{1,2})月(\d{1,2})日", text):
+        mo, da = int(m.group(1)), int(m.group(2))
+        if not (1 <= mo <= 12 and 1 <= da <= 31):
+            continue
+        year = now.year
+        if mo - now.month > 1:
+            year -= 1
+        try:
+            d = datetime(year, mo, da, tzinfo=timezone(timedelta(hours=8)))
+        except ValueError:
+            continue
+        if (now - d).days > max_age_days:
+            return True
+    return False
+
+
 def score(item):
     text = item["title"] + item["desc"]
     if NOISE.search(text):
@@ -418,6 +439,11 @@ def save_history(history, news):
 
 
 def main():
+    # 人工组稿模式：本地已写好 news.json 时跳过抓取（workflow_dispatch 传入）
+    if os.environ.get("USE_EXISTING_NEWS") == "1" and os.path.exists(OUT_PATH):
+        print("USE_EXISTING_NEWS=1，跳过抓取，沿用现有 news.json")
+        return
+
     # 三源融合
     raw = fetch_sina()
     for q in QUERIES:
@@ -427,6 +453,9 @@ def main():
 
     candidates = dedupe([dict(it, desc=clean_desc(it["desc"], 200))
                          for it in raw if it["title"]])
+    before = len(candidates)
+    candidates = [c for c in candidates if not is_stale(c)]
+    print("时效过滤：剔除旧闻", before - len(candidates), "条，剩", len(candidates), "条")
     industry = [c for c in candidates if score(c) >= 6]
     pool = industry if len(industry) >= 12 else candidates
     print("过滤后候选", len(pool), "条")

@@ -138,7 +138,21 @@ def col_height(items):
 
 news_h = max(col_height(col_left), col_height(col_right))
 
-FOOTER_H = 104
+# 页脚二维码：优先读 data/page_url.txt（人工组稿时写入的当日新闻页链接），
+# 没有则指向 GitHub Pages 固定页（海报+新闻合一，扫码即可看全文/存海报）
+PAGE_URL = "https://kingashwood.github.io/-huadu-daily-poster/"
+QR_URL = PAGE_URL
+_url_file = os.path.join(BASE, "data", "page_url.txt")
+if os.path.exists(_url_file):
+    try:
+        with open(_url_file, encoding="utf-8") as f:
+            _u = f.read().strip()
+        if _u:
+            QR_URL = _u
+    except Exception:
+        pass
+
+FOOTER_H = 168 if QR_URL else 104
 TOTAL_H = HEADER_H + SECTION_H + news_h + FOOTER_H
 
 # ---------- 创建画布 ----------
@@ -206,17 +220,49 @@ draw_col(MARGIN, col_left, y0, 1)
 draw_col(MARGIN + COL_W + COL_GAP, col_right, y0, 6)
 
 # ---------- 页尾 ----------
+FOOTER_H = 168 if QR_URL else 104
 foot_y = TOTAL_H - FOOTER_H
 draw.rectangle([0, foot_y, W, TOTAL_H], fill=DEEP_BLUE)
 draw.rectangle([0, foot_y, W, foot_y + 4], fill=GOLD)
-f1 = "河南华都柜业集团有限公司"
-ff1 = font(26, True)
-fw1 = draw.textlength(f1, font=ff1)
-draw.text(((W - fw1) / 2, foot_y + 20), f1, font=ff1, fill=WHITE)
-f2 = "专注钢制家具 35 年"
-ff2 = font(20)
-fw2 = draw.textlength(f2, font=ff2)
-draw.text(((W - fw2) / 2, foot_y + 62), f2, font=ff2, fill=GOLD)
+
+if QR_URL:
+    # 左侧二维码 + 白描边，右侧公司信息
+    def make_qr_image(text, size, fg=DEEP_BLUE, bg=WHITE):
+        import qrcode
+        qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M,
+                           box_size=10, border=1)
+        qr.add_data(text)
+        qr.make(fit=True)
+        m = qr.make_image(fill_color=fg, back_color=bg)
+        m = m.get_image().convert("RGB").resize((size, size), Image.NEAREST)
+        return m
+
+    qr_size = 124
+    qr_img = make_qr_image(QR_URL, qr_size)
+    qr_box_y = foot_y + (FOOTER_H - qr_size) // 2
+    draw.rounded_rectangle([MARGIN - 8, qr_box_y - 8, MARGIN + qr_size + 8, qr_box_y + qr_size + 8],
+                           radius=10, fill=WHITE)
+    img.paste(qr_img, (MARGIN, qr_box_y))
+    tx = MARGIN + qr_size + 30
+    f1 = "河南华都柜业集团有限公司"
+    ff1 = font(26, True)
+    draw.text((tx, foot_y + 30), f1, font=ff1, fill=WHITE)
+    draw.rectangle([tx, foot_y + 72, tx + 40, foot_y + 76], fill=GOLD)
+    f2 = "专注钢制家具 35 年"
+    ff2 = font(20)
+    draw.text((tx, foot_y + 90), f2, font=ff2, fill=GOLD)
+    f3 = "扫码阅读 10 条新闻原文"
+    ff3 = font(18)
+    draw.text((tx, foot_y + 124), f3, font=ff3, fill=(210, 220, 235))
+else:
+    f1 = "河南华都柜业集团有限公司"
+    ff1 = font(26, True)
+    fw1 = draw.textlength(f1, font=ff1)
+    draw.text(((W - fw1) / 2, foot_y + 20), f1, font=ff1, fill=WHITE)
+    f2 = "专注钢制家具 35 年"
+    ff2 = font(20)
+    fw2 = draw.textlength(f2, font=ff2)
+    draw.text(((W - fw2) / 2, foot_y + 62), f2, font=ff2, fill=GOLD)
 
 # ---------- 保存（动态日期 + 固定 latest） ----------
 today = now.strftime("%Y-%m-%d")
