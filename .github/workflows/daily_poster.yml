@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       use_existing_news:
-        description: '沿用现有 data/news.json（人工组稿后重发时勾选）'
+        description: '沿用现有 data/news.json（人工组稿后重发时勾选；定时 cron 已默认沿用，不再抓取）'
         type: boolean
         required: false
         default: false
@@ -37,7 +37,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 抓取当日行业新闻
-        if: ${{ inputs.use_existing_news != true }}
+        # 2026-11-01 方案A：定时 cron 不再抓取，直接沿用前一天人工组稿的 data/news.json，
+        # 避免云端 rule_curate 兜底抓取（无 LLM key 时全是运价/出口老话题）覆盖人工内容。
+        # 仅在手动 workflow_dispatch 且未勾选「沿用现有 news.json」时才抓取。
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_existing_news != true }}
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
