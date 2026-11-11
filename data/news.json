@@ -1,12 +1,12 @@
 [
-  {"title": "前10月外贸增长20%", "desc": "海关总署发布，今年前10个月我国货物贸易进出口总值44.81万亿元，同比增长20%，保持强劲增长态势。与算力、人工智能相关产品出口增长迅猛，外贸结构持续优化。", "source": "新华财经", "url": "https://www.cnfin.com/hb-lb/detail/20261111/4493816_1.html"},
-  {"title": "美核心CPI超预期", "desc": "美国10月CPI环比涨0.4%、核心CPI涨0.3%，双双高于预期。美联储理事沃勒释放鹰派信号，称12月或加息50个基点，交易员已完全押注下月加息25个基点。", "source": "华尔街见闻", "url": "https://wallstreetcn.com/livenews/3197979"},
-  {"title": "黄仁勋遭股东集体诉讼", "desc": "美国罗森律所代表投资人对英伟达及CEO黄仁勋提起股东集体诉讼，指控其未充分披露个人关系及经营风险构成欺诈。英伟达两日市值蒸发约4300亿美元。", "source": "陆家嘴财经早餐", "url": "https://news.qq.com/rain/a/20261111A038A300"},
-  {"title": "Anthropic估值1.4万亿", "desc": "AI明星企业Anthropic更新招股书，发行价区间70至78美元，融资最高约643.5亿美元，完全稀释估值达1.405万亿美元，并同步推出Claude Meetings等办公AI工具。", "source": "华尔街见闻", "url": "https://wallstreetcn.com/livenews/3197979"},
-  {"title": "阿里分拆平头哥上市", "desc": "阿里巴巴启动芯片子公司平头哥分拆上市，已向港交所递交A1申请，H股拟在主板挂牌。平头哥芯片业务加速规模化，真武M890超节点已服务逾650家客户。", "source": "新华财经", "url": "https://www.cnfin.com/hb-lb/detail/20261111/4493816_1.html"},
-  {"title": "软银两年来首度亏损", "desc": "软银集团公布第二财季净亏损1.12万亿日元，为近两年来首次季度亏损。受AI股暴跌拖累，愿景基金当季亏816亿日元，美国数据中心项目遭巨额减值。", "source": "华尔街见闻", "url": "https://wallstreetcn.com/livenews/3197979"},
-  {"title": "梁家辉高叶金鸡封帝后", "desc": "第39届中国电影金鸡奖颁奖典礼在厦门举行，梁家辉凭《捕风追影》获最佳男主角，高叶凭《南京照相馆》获最佳女主角，《南京照相馆》摘得最佳故事片奖。", "source": "川观新闻", "url": "https://cbgc.scol.com.cn/news/8132793"},
-  {"title": "体操女团夺青奥首金", "desc": "2026年达喀尔青奥会竞技体操女子团体决赛，由陈紫嫣、谢谷英、钟圻组成的中国队以总分107.798分夺冠，斩获青奥会历史首枚体操女子团体金牌。", "source": "央视新闻", "url": "https://news.qq.com/rain/a/20261111A036WQ00"},
-  {"title": "立陶宛要求台代表处改名", "desc": "立陶宛总统首席顾问表示，推动对华关系正常化已写入施政纲领，代表处名称是中方关注红线。立时任总理曾公开承认设立所谓台代表处是战略错误。", "source": "环球网", "url": "https://www.huanqiu.com/article/4TyZSrLc1HG"},
-  {"title": "俄美乌三方会谈重启", "desc": "俄罗斯、美国、乌克兰新一轮三方会谈在阿联酋阿布扎比重启，系今年2月谈判停滞以来时隔9个月首次面对面磋商，首日持续近4小时，泽连斯基称富有建设性。", "source": "央视新闻", "url": "https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=16763413282678101229&channelId=1119"}
+  {"title": "王毅同美方通话", "desc": "中共中央政治局委员、外交部长王毅11日同美国国务卿鲁比奥通电话，双方就中美关系及两国元首互动深入交换意见，通话积极、建设性。", "source": "央视新闻", "url": "https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=10145153643877539539&channelId=1119"},
+  {"title": "10月汽车产销破300万", "desc": "中汽协数据显示，10月我国汽车产销量双双突破300万辆，新能源汽车销量占汽车新车总销量64.3%，出口60.6万辆、同比增1.4倍。", "source": "央视新闻", "url": "https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=10145153643877539539&channelId=1119"},
+  {"title": "费城半导体指数大涨", "desc": "AI板块密集反弹，费城半导体指数大涨5.66%，CoreWeave飙涨超24%，存储芯片股集体拉升，闪迪涨超13%、美光涨超11%。", "source": "中新经纬", "url": "https://www.jwview.com/jingwei/html/11-12/696667.shtml"},
+  {"title": "离岸信托个税超千亿", "desc": "国家税务总局数据显示，累计申报离岸信托个人所得税已超1600亿元，10月当月入库超1200亿，带动全国10月个税收入增长近90%。", "source": "上观新闻", "url": "https://news.qq.com/rain/a/20261112A030IG00"},
+  {"title": "成品油迎年内第六降", "desc": "国内成品油新一轮调价窗口12日24时开启，预计下调440元/吨，折合每升下跌0.33至0.40元，将迎年内第六次下调。", "source": "腾讯新闻", "url": "https://news.qq.com/rain/a/20261112A030YW00"},
+  {"title": "伊朗油轮霍尔木兹触雷", "desc": "伊朗革命卫队海军称，两艘油轮试图通过未经授权航线秘密驶出霍尔木兹海峡，触碰水雷引发剧烈爆炸，霍尔木兹海峡局势再趋紧张。", "source": "央视新闻", "url": "https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=10145153643877539539&channelId=1119"},
+  {"title": "轻骑兵太阳能无人机", "desc": "我国自主研发的中小型纯太阳能无人机“轻骑兵”成功首飞，长3.2米、翼展8米，最大设计续航达30小时，以太阳能为唯一动力源。", "source": "央视新闻", "url": "https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=10145153643877539539&channelId=1119"},
+  {"title": "金塘海底隧道盾构完", "desc": "世界最长、直径最大的海底高铁隧道——甬舟铁路金塘海底隧道舟山侧盾构施工顺利完成，我国跨海高铁隧道建设再进一步。", "source": "贵州改革", "url": "http://mp.weixin.qq.com/s?__biz=MzIzNDYxNTcxOA==&mid=2247827514&idx=1&sn=69121f9fe2b42b3fd4b2ee836b6b0791&chksm=e9fe7065230e58f7fd55a9a97aeff036f159cdd86b1c2a5e5f3b652de48beca046920ebecece#rd"},
+  {"title": "全国最低工资超两千", "desc": "今年以来江苏、浙江、广东等多地上调最低工资标准，全国各省区市第一档最低工资均已超过2000元，最低涨100元、最高涨超200元。", "source": "腾讯新闻", "url": "https://news.qq.com/rain/a/20261112A030YW00"},
+  {"title": "中非创新合作论坛办", "desc": "2026中非创新合作与发展论坛在武汉举办，40个非洲国家代表参会；前三季度我国自共建“一带一路”国家进口增速达17.9%。", "source": "人民日报", "url": "https://paper.people.com.cn/rmrbhwb/pc/content/202611/12/content_30190859.html"}
 ]
