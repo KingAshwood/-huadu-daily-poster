@@ -1,12 +1,12 @@
 [
- {"title":"黄仁勋承认出轨风波", "desc":"英伟达创始人兼CEO黄仁勋致信员工，承认对妻子不忠并致歉，表示愿承担全部责任。董事会已启动独立调查，但仍公开支持其留任CEO。市场担忧调查或拖累产品发布节奏。", "source":"腾讯新闻", "url":"https://news.qq.com/rain/a/20261110A037NX00"},
- {"title":"10月PPI创52个月新高", "desc":"国家统计局发布，10月CPI同比上涨0.7%，PPI同比上涨5.7%，涨幅创近52个月新高，CPI与PPI剪刀差扩大至5个百分点，为年内最大差值。", "source":"新华财经", "url":"https://www.cnfin.com/hb-lb/detail/20261110/4493224_1.html"},
- {"title":"美伊核谈判重大进展", "desc":"据沙特媒体，美伊核问题谈判取得进展，双方或就伊朗铀浓缩丰度达成初步协议。受此消息影响，周一国际油价大跌，布油盘中跌近8%，期金则上涨2%。", "source":"华尔街见闻", "url":"https://www.163.com/dy/article/LBBTSBKV05198NMR.html"},
- {"title":"俄美乌阿布扎比会谈", "desc":"当地时间10日至11日，俄美乌三方会谈在阿联酋阿布扎比举行，系今年2月谈判停滞后时隔9个月首次面对面磋商，主要聚焦安全与停火议题。", "source":"央视网", "url":"https://tv.cctv.com/2026/11/10/VIDEg3KH0fjQomdLrC8sbMil261110.shtml"},
- {"title":"对美关税继续暂停", "desc":"国务院关税税则委员会公告，自11月10日13时01分起，在2个月内继续暂停24%的对美加征关税税率，保留10%税率，落实中美第八轮经贸磋商共识。", "source":"新华财经", "url":"https://www.cnfin.com/hb-lb/detail/20261110/4493224_1.html"},
- {"title":"德国提名首位女总统", "desc":"德国总理默茨宣布，基民盟支持基社盟政治人物伊尔泽·艾格纳竞选下届联邦总统，如当选她将成为德国历史上首位女性国家元首。", "source":"腾讯新闻", "url":"https://new.qq.com/rain/a/20261110A03HOV00"},
- {"title":"埃及列车相撞超百人伤", "desc":"埃及吉萨省发生客运列车相撞事故，已致7人死亡、125人受伤。总检察院调查显示，多方存在玩忽职守行为，已成立委员会审查铁路运营系统。", "source":"央视新闻", "url":"https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=11585613226071502483&channelId=1119"},
- {"title":"土耳其钢铁厂爆炸16死", "desc":"土耳其伊兹密尔省一家钢铁厂发生爆炸事故，已造成16人死亡、13人受伤，其中2人伤势严重，土耳其总统埃尔多安当晚通报灾情。", "source":"央视新闻", "url":"https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=11585613226071502483&channelId=1119"},
- {"title":"Anthropic启动IPO路演", "desc":"AI明星企业Anthropic最快周二启动IPO路演，力争感恩节前上市。公司同步发布旗舰模型Claude Fable 5.2与Mythos 5.2，重点升级编程推理与科研能力。", "source":"腾讯新闻", "url":"https://news.qq.com/rain/a/20261110A037NX00"},
- {"title":"药明康德移出1260H名单", "desc":"药明康德公告披露，美国国防部已决定将其从1260H条款下的中国军事复合体名单中移除，自当日起生效，反映美方对其合规运营的重新评估。", "source":"中国基金报", "url":"https://www.chnfund.com/web/sx"}
+  {"title": "前10月外贸增长20%", "desc": "海关总署发布，今年前10个月我国货物贸易进出口总值44.81万亿元，同比增长20%，保持强劲增长态势。与算力、人工智能相关产品出口增长迅猛，外贸结构持续优化。", "source": "新华财经", "url": "https://www.cnfin.com/hb-lb/detail/20261111/4493816_1.html"},
+  {"title": "美核心CPI超预期", "desc": "美国10月CPI环比涨0.4%、核心CPI涨0.3%，双双高于预期。美联储理事沃勒释放鹰派信号，称12月或加息50个基点，交易员已完全押注下月加息25个基点。", "source": "华尔街见闻", "url": "https://wallstreetcn.com/livenews/3197979"},
+  {"title": "黄仁勋遭股东集体诉讼", "desc": "美国罗森律所代表投资人对英伟达及CEO黄仁勋提起股东集体诉讼，指控其未充分披露个人关系及经营风险构成欺诈。英伟达两日市值蒸发约4300亿美元。", "source": "陆家嘴财经早餐", "url": "https://news.qq.com/rain/a/20261111A038A300"},
+  {"title": "Anthropic估值1.4万亿", "desc": "AI明星企业Anthropic更新招股书，发行价区间70至78美元，融资最高约643.5亿美元，完全稀释估值达1.405万亿美元，并同步推出Claude Meetings等办公AI工具。", "source": "华尔街见闻", "url": "https://wallstreetcn.com/livenews/3197979"},
+  {"title": "阿里分拆平头哥上市", "desc": "阿里巴巴启动芯片子公司平头哥分拆上市，已向港交所递交A1申请，H股拟在主板挂牌。平头哥芯片业务加速规模化，真武M890超节点已服务逾650家客户。", "source": "新华财经", "url": "https://www.cnfin.com/hb-lb/detail/20261111/4493816_1.html"},
+  {"title": "软银两年来首度亏损", "desc": "软银集团公布第二财季净亏损1.12万亿日元，为近两年来首次季度亏损。受AI股暴跌拖累，愿景基金当季亏816亿日元，美国数据中心项目遭巨额减值。", "source": "华尔街见闻", "url": "https://wallstreetcn.com/livenews/3197979"},
+  {"title": "梁家辉高叶金鸡封帝后", "desc": "第39届中国电影金鸡奖颁奖典礼在厦门举行，梁家辉凭《捕风追影》获最佳男主角，高叶凭《南京照相馆》获最佳女主角，《南京照相馆》摘得最佳故事片奖。", "source": "川观新闻", "url": "https://cbgc.scol.com.cn/news/8132793"},
+  {"title": "体操女团夺青奥首金", "desc": "2026年达喀尔青奥会竞技体操女子团体决赛，由陈紫嫣、谢谷英、钟圻组成的中国队以总分107.798分夺冠，斩获青奥会历史首枚体操女子团体金牌。", "source": "央视新闻", "url": "https://news.qq.com/rain/a/20261111A036WQ00"},
+  {"title": "立陶宛要求台代表处改名", "desc": "立陶宛总统首席顾问表示，推动对华关系正常化已写入施政纲领，代表处名称是中方关注红线。立时任总理曾公开承认设立所谓台代表处是战略错误。", "source": "环球网", "url": "https://www.huanqiu.com/article/4TyZSrLc1HG"},
+  {"title": "俄美乌三方会谈重启", "desc": "俄罗斯、美国、乌克兰新一轮三方会谈在阿联酋阿布扎比重启，系今年2月谈判停滞以来时隔9个月首次面对面磋商，首日持续近4小时，泽连斯基称富有建设性。", "source": "央视新闻", "url": "https://ysxw.cctv.cn/article.html?toc_style_id=feeds_default&item_id=16763413282678101229&channelId=1119"}
 ]
